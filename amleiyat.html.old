@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>🛠️ Ameliyat Masası Oyunu</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f1f1f1;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #masa {
+      width: 500px;
+      height: 500px;
+      border: 4px solid #444;
+      margin: 30px auto;
+      position: relative;
+      background: white;
+    }
+
+    .hedef-kutu {
+      width: 80px;
+      height: 80px;
+      border: 2px dashed #aaa;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    #on { top: 20px; left: 50%; transform: translateX(-50%); }
+    #arka { bottom: 20px; left: 50%; transform: translateX(-50%); }
+    #sol { left: 20px; top: 50%; transform: translateY(-50%); }
+    #sag { right: 20px; top: 50%; transform: translateY(-50%); }
+
+    .alet-kutusu {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .alet {
+      background: #8ecae6;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: grab;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    #bilgi {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠️ Ameliyat Masası Oyunu</h1>
+
+  <div id="masa">
+    <div id="on" class="hedef-kutu" data-bolge="Ön">Ön</div>
+    <div id="arka" class="hedef-kutu" data-bolge="Arka">Arka</div>
+    <div id="sol" class="hedef-kutu" data-bolge="Sol">Sol</div>
+    <div id="sag" class="hedef-kutu" data-bolge="Sağ">Sağ</div>
+  </div>
+
+  <div class="alet-kutusu" id="aletKutusu">
+    <div class="alet" draggable="true" data-name="Kanül" id="kanul">Kanül</div>
+    <div class="alet" draggable="true" data-name="Neşter" id="nester">Neşter</div>
+    <div class="alet" draggable="true" data-name="Makas" id="makas">Makas</div>
+    <div class="alet" draggable="true" data-name="Pens" id="pens">Pens</div>
+  </div>
+  
+
+  <div id="bilgi">
+    ⏳ Süre: <span id="sure">30</span> sn<br>
+    📊 Puan: <span id="puan">0</span>
+    <br>
+    <button id="bitirButonu">✅ Bitir</button>
+    <br>
+    <button id="yenileButonu">🔄 Yenile</button>
+
+  </div>
+ 
+
+  <script>
+    document.getElementById("yenileButonu").addEventListener("click", masayiTemizle);
+    document.querySelectorAll('.hedef-kutu').forEach(alan => {
+  alan.addEventListener('dragover', e => e.preventDefault());
+
+  alan.addEventListener('drop', e => {
+    e.preventDefault();
+    const alet = e.dataTransfer.getData('text/plain');
+    const hedef = alan.dataset.bolge;
+
+    // Zaten yerleştirildiyse bir daha yerleştirilmesin
+    if (yerlesimler.hasOwnProperty(alet)) return;
+
+    if (!alan.classList.contains('dolu')) {
+      alan.textContent = alet;
+      alan.classList.add('dolu');
+      yerlesimler[alet] = hedef;
+
+      // Aşağıdaki listeden kaldır
+      const aletEl = document.querySelector(`.alet[data-name="${alet}"]`);
+      if (aletEl) aletEl.remove();
+    }
+  });
+});
+
+
+      function masayiTemizle() {
+        // 1. Masadaki kutuları boşalt
+        document.querySelectorAll('.hedef-kutu').forEach(alan => {
+          alan.textContent = alan.dataset.bolge;
+          alan.classList.remove('dolu');
+        });
+
+        // 2. Yerleşim bilgilerini sıfırla
+        yerlesimler = {};
+
+        // 3. Aletleri yeniden oluştur
+        const aletKutusu = document.getElementById("aletKutusu");
+        aletKutusu.innerHTML = ''; // Önce temizle
+
+        const aletler = ["Kanül", "Neşter", "Makas", "Pens"];
+        aletler.forEach(isim => {
+          const el = document.createElement("div");
+          el.className = "alet";
+          el.draggable = true;
+          el.dataset.name = isim;
+          el.textContent = isim;
+
+          // Sürükleme olayını yeniden bağla
+          el.addEventListener("dragstart", e => {
+            e.dataTransfer.setData("text/plain", isim);
+          });
+
+          aletKutusu.appendChild(el);
+        });
+      }
+
+     document.getElementById("bitirButonu").addEventListener("click", oyunuBitir);
+    const hedefler = {
+      "Kanül": "Sol",
+      "Neşter": "Sağ",
+      "Makas": "Ön",
+      "Pens": "Arka"
+    };
+
+    let puan = 0;
+    let yerlesimler = {}; 
+
+    const puanGoster = document.getElementById("puan");
+    const sureGoster = document.getElementById("sure");
+
+   
+    document.querySelectorAll('.alet').forEach(alet => {
+      alet.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.name);
+      });
+    });
+
+    document.querySelectorAll('.hedef-kutu').forEach(alan => {
+      alan.addEventListener('dragover', e => e.preventDefault());
+
+      alan.addEventListener('drop', e => {
+        e.preventDefault();
+        const alet = e.dataTransfer.getData('text/plain');
+        const hedef = alan.dataset.bolge;
+
+        if (!alan.classList.contains('dolu')) {
+          alan.innerHTML = alet;
+          alan.classList.add('dolu');
+
+          yerlesimler[alet] = hedef; // oyuncunun seçimini kaydet
+        }
+      });
+    });
+
+    // Sayaç ve bitiş kontrolü
+    let kalanSure = 30;
+    const zamanlayici = setInterval(() => {
+      kalanSure--;
+      sureGoster.textContent = kalanSure;
+
+      if (kalanSure <= 0) {
+        clearInterval(zamanlayici);
+
+        let dogru = 0;
+        let yanlis = 0;
+        let eksik = 0;
+
+        Object.keys(hedefler).forEach(alet => {
+          if (!yerlesimler[alet]) {
+            eksik++;
+          } else if (yerlesimler[alet] === hedefler[alet]) {
+            dogru++;
+            puan += 10;
+          } else {
+            yanlis++;
+          }
+        });
+
+        puanGoster.textContent = puan;
+
+        alert(`🕔 Süre Doldu!\n✅ Doğru: ${dogru}\n❌ Yanlış: ${yanlis}\n⏳ Yerleştirilmeyen: ${eksik}\n🏁 Puan: ${puan}`);
+      }
+    }, 1000);
+
+    function oyunuBitir() {
+      clearInterval(zamanlayici); // süreyi durdur
+
+      let dogru = 0;
+      let yanlis = 0;
+      let eksik = 0;
+
+      Object.keys(hedefler).forEach(alet => {
+        if (!yerlesimler[alet]) {
+          eksik++;
+        } else if (yerlesimler[alet] === hedefler[alet]) {
+          dogru++;
+          puan += 10;
+        } else {
+          yanlis++;
+        }
+      });
+
+      puanGoster.textContent = puan;
+
+      alert(`⏱️ Süre Doldu!\n✔️ Doğru: ${dogru}\n❌ Yanlış: ${yanlis}\n⏳ Yerleştirilmeyen: ${eksik}\n📊 Puan: ${puan}`);
+    }
+
+  </script>
+
+</body>
+</html>

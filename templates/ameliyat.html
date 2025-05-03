@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>🛠️ Ameliyat Masası Oyunu</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <h1>🛠️ Ameliyat Masası Oyunu - <span id="oyuncuAdiAlani"></span></h1>
+
+  <div id="masa">
+    <div id="on" class="hedef-kutu" data-bolge="Ön">Ön</div>
+    <div id="arka" class="hedef-kutu" data-bolge="Arka">Arka</div>
+    <div id="sol" class="hedef-kutu" data-bolge="Sol">Sol</div>
+    <div id="sag" class="hedef-kutu" data-bolge="Sağ">Sağ</div>
+  </div>
+
+  <div class="alet-kutusu" id="aletKutusu"></div>
+
+  <div id="bilgi">
+    ⏳ Süre: <span id="sure">30</span> sn<br>
+    📊 Puan: <span id="puan">0</span>
+    <br><br>
+    <button id="bitirButonu">✅ Bitir</button>
+    <button id="yenileButonu">🔄 Yenile</button>
+  </div>
+
+  <script>
+    const hedefler = {
+      "Kanül": "Sol",
+      "Neşter": "Sağ",
+      "Makas": "Ön",
+      "Pens": "Arka"
+    };
+
+    let puan = 0;
+    let yerlesimler = {}; 
+    const puanGoster = document.getElementById("puan");
+    const sureGoster = document.getElementById("sure");
+    const aletKutusu = document.getElementById("aletKutusu");
+    const oyuncuAdi = localStorage.getItem("oyuncu") || "Bilinmeyen";
+    document.getElementById("oyuncuAdiAlani").textContent = oyuncuAdi;
+
+    function aletleriYenidenOlustur() {
+      aletKutusu.innerHTML = '';
+      const aletler = ["Kanül", "Neşter", "Makas", "Pens"];
+      aletler.forEach(isim => {
+        const el = document.createElement("div");
+        el.className = "alet";
+        el.draggable = true;
+        el.dataset.name = isim;
+        el.textContent = isim;
+        el.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", isim);
+        });
+        aletKutusu.appendChild(el);
+      });
+    }
+
+    function masayiTemizle() {
+      document.querySelectorAll('.hedef-kutu').forEach(alan => {
+        alan.textContent = alan.dataset.bolge;
+        alan.classList.remove('dolu');
+      });
+      yerlesimler = {};
+      aletleriYenidenOlustur();
+    }
+
+    document.getElementById("yenileButonu").addEventListener("click", masayiTemizle);
+
+    document.getElementById("bitirButonu").addEventListener("click", oyunuBitir);
+
+    document.querySelectorAll('.hedef-kutu').forEach(alan => {
+      alan.addEventListener('dragover', e => e.preventDefault());
+      alan.addEventListener('drop', e => {
+        e.preventDefault();
+        const alet = e.dataTransfer.getData('text/plain');
+        const hedef = alan.dataset.bolge;
+
+        if (yerlesimler.hasOwnProperty(alet)) return;
+
+        if (!alan.classList.contains('dolu')) {
+          alan.textContent = alet;
+          alan.classList.add('dolu');
+          yerlesimler[alet] = hedef;
+
+          const aletEl = document.querySelector(`.alet[data-name="${alet}"]`);
+          if (aletEl) aletEl.remove();
+        }
+      });
+    });
+
+    let kalanSure = 30;
+    const zamanlayici = setInterval(() => {
+      kalanSure--;
+      sureGoster.textContent = kalanSure;
+
+      if (kalanSure <= 0) {
+        clearInterval(zamanlayici);
+        oyunuBitir();
+      }
+    }, 1000);
+
+    function oyunuBitir() {
+      clearInterval(zamanlayici);
+      let dogru = 0;
+      let yanlis = 0;
+      let eksik = 0;
+
+      Object.keys(hedefler).forEach(alet => {
+        if (!yerlesimler[alet]) {
+          eksik++;
+        } else if (yerlesimler[alet] === hedefler[alet]) {
+          dogru++;
+          puan += 10;
+        } else {
+          yanlis++;
+        }
+      });
+
+      puanGoster.textContent = puan;
+
+      fetch('/api/skor', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          oyuncu: oyuncuAdi,
+          puan,
+          dogru,
+          yanlis,
+          eksik
+        })
+      });
+
+      alert(`⏱️ Oyun Bitti!\n✔️ Doğru: ${dogru}\n❌ Yanlış: ${yanlis}\n⏳ Yerleştirilmemiş: ${eksik}\n📊 Puan: ${puan}`);
+      setTimeout(() => window.location.href = '/skorlar', 1500);
+    }
+
+    aletleriYenidenOlustur();
+  </script>
+
+</body>
+</html>

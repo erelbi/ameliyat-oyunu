@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Ameliyat Oyunu - Giriş</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="giris-kutusu">
+    <h1>🔬 Ameliyat Masası Oyunu</h1>
+    <form id="girisForm">
+      <label for="oyuncuAdi">Adınızı Girin:</label><br>
+      <input type="text" id="oyuncuAdi" name="oyuncuAdi" required><br><br>
+      <button type="submit">🎮 Oyuna Başla</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('girisForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const ad = document.getElementById('oyuncuAdi').value.trim();
+      if (ad) {
+        localStorage.setItem('oyuncu', ad);
+        window.location.href = '/ameliyat';
+      }
+    });
+  </script>
+</body>
+</html>

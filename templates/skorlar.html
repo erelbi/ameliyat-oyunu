@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Skor Tablosu</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #skorTablosu {
+      margin: auto;
+      width: 90%;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .butonlar {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .naviButon {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #00b4d8;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .naviButon:hover {
+      background-color: #0077b6;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+  <h1>📊 Skor Tablosu</h1>
+  <table id="skorTablosu" class="display">
+    <thead>
+      <tr>
+        <th>Oyuncu</th>
+        <th>Puan</th>
+        <th>Doğru</th>
+        <th>Yanlış</th>
+        <th>Eksik</th>
+        <th>Tarih</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <div class="butonlar">
+    <button class="naviButon" onclick="window.location.href='/ameliyat'">🔁 Oyuna Dön</button>
+    <button class="naviButon" onclick="window.location.href='/'">🏠 Giriş Sayfası</button>
+  </div>
+
+  <script>
+    fetch('/api/skorlar')
+      .then(res => res.json())
+      .then(veri => {
+        const tbody = document.querySelector('#skorTablosu tbody');
+        veri.reverse().forEach(skor => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${skor.oyuncu}</td>
+            <td>${skor.puan}</td>
+            <td>${skor.dogru}</td>
+            <td>${skor.yanlis}</td>
+            <td>${skor.eksik}</td>
+            <td>${new Date(skor.tarih).toLocaleString()}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        $('#skorTablosu').DataTable();
+      });
+  </script>
+</body>
+</html>
